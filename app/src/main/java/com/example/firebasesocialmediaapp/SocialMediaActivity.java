@@ -70,10 +70,10 @@ public class SocialMediaActivity extends AppCompatActivity implements AdapterVie
         btnCreatePost = findViewById(R.id.btnCreatePost);
         edtDescription = findViewById(R.id.edtDes);
         usersListView = findViewById(R.id.usersListView);
-
         usersListView.setOnItemClickListener(this);
+
         usernames = new ArrayList<>();
-        adapter = new ArrayAdapter(this,android.R.layout.simple_list_item_1,usernames);
+        adapter = new ArrayAdapter(this, android.R.layout.simple_list_item_1,usernames);
 
         uids = new ArrayList<>();
 
@@ -111,6 +111,10 @@ public class SocialMediaActivity extends AppCompatActivity implements AdapterVie
                 logout();
                 break;
 
+            case R.id.viewPostsItem:
+                Intent intent = new Intent(this, ViewPostsActivity.class);
+                startActivity(intent);
+                break;
         }
         return super.onOptionsItemSelected(item);
     }
@@ -203,7 +207,7 @@ public class SocialMediaActivity extends AppCompatActivity implements AdapterVie
 
                     FirebaseDatabase.getInstance().getReference().child("my_users").addChildEventListener(new ChildEventListener() {
                         @Override
-                        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+                        public void onChildAdded(@NonNull DataSnapshot snapshot, @Nullable String s) {
 
                             uids.add(snapshot.getKey());
 
@@ -253,11 +257,19 @@ public class SocialMediaActivity extends AppCompatActivity implements AdapterVie
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
         HashMap<String, String> dataMap = new HashMap<>();
-        dataMap.put("FromWhom",FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
+        dataMap.put("fromWhom",FirebaseAuth.getInstance().getCurrentUser().getDisplayName());
         dataMap.put("imageIdentifier",imageIdentifier);
         dataMap.put("imageLink",imageDownloadLink);
         dataMap.put("des",edtDescription.getText().toString());
-        FirebaseDatabase.getInstance().getReference().child("my_users").child(uids.get(position)).child("received_posts").push().setValue(dataMap);
+        FirebaseDatabase.getInstance().getReference().child("my_users").child(uids.get(position)).child("received_posts").push().setValue(dataMap).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful()){
+
+                    Toast.makeText(SocialMediaActivity.this, "Data Sent", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
 
     }
 }
